@@ -6,11 +6,15 @@
 
 #include "rc.h"
 
-eredis_t * hEredis;
+eredis_t * hEredis = NULL;
+eredis_reader_t *reader;
+
 
 void redis_init()
 {
     hEredis = eredis_new();
+    eredis_timeout(hEredis, 200 );
+    eredis_r_retry(hEredis, 1 );
 }
 
 void redis_connect(char* target)
@@ -27,6 +31,8 @@ void redis_connect(char* target)
     eredis_host_add(hEredis, target, port );
     eredis_run_thr(hEredis);
 
+    reader = eredis_r(hEredis);
+
     printf("Connect Redis(%s:%d).", target, port);
 }
 
@@ -35,23 +41,24 @@ void redis_send_status(struct jobs_eta *je)
     int command;
     char buff[40];
     char timestr[20];
-    eredis_reader_t *reader;
     eredis_reply_t *reply;
     time_t now = time(NULL);
+
+    if (hEredis == NULL)
+    {
+        return;
+    }
 
     strftime(timestr, 20, "%Y%m%d%H%M%S", localtime(&now));
     sprintf(buff, "nva:io:%s", timestr);
 
-    reader = eredis_r(hEredis);
     reply = eredis_r_cmd(reader, "EXISTS %s", buff);
     if (!reply)
     {
         printf("failed to exists key %s", buff);
         return;
     }
-
     command = reply->integer;
-    eredis_r_release(reader);
 
     switch (command)
     {
