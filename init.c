@@ -17,6 +17,7 @@
 #include <sys/shm.h>
 #endif
 
+#include "rc.h"
 #include "parse.h"
 #include "smalloc.h"
 #include "filehash.h"
@@ -222,6 +223,11 @@ static struct option l_opts[FIO_NR_OPTIONS] = {
 		.name		= (char *) "client",
 		.has_arg	= required_argument,
 		.val		= 'C',
+	},
+	{
+			.name		= (char *) "redis",
+			.has_arg	= required_argument,
+			.val		= 'N',
 	},
 	{
 		.name		= (char *) "remote-config",
@@ -2008,6 +2014,7 @@ static void usage(const char *name)
 	printf("  --trigger=cmd\t\tSet this command as local trigger\n");
 	printf("  --trigger-remote=cmd\tSet this command as remote trigger\n");
 	printf("  --aux-path=path\tUse this path for fio state generated files\n");
+	printf("  --redis=hostname\tSend job status to Redis \n");
 	printf("\nFio was written by Jens Axboe <jens.axboe@oracle.com>");
 	printf("\n                   Jens Axboe <jaxboe@fusionio.com>");
 	printf("\n                   Jens Axboe <axboe@fb.com>\n");
@@ -2586,6 +2593,18 @@ int parse_cmd_line(int argc, char *argv[], int client_type)
 				optind++;
 			}
 			break;
+		case 'N':
+				did_arg = 1;
+				if (is_backend) {
+					log_err("fio: can't be logging to redis\n");
+					do_exit++;
+					exit_val = 1;
+					break;
+				}
+
+				redis_init();
+				redis_connect(optarg);
+				break;
 		case 'R':
 			did_arg = 1;
 			if (fio_client_add_ini_file(cur_client, optarg, true)) {

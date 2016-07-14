@@ -10,3 +10,5 @@
 y.tab.*
 lex.yy.c
 *.un~
+.idea
+CMakeLists.txt

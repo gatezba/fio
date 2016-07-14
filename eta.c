@@ -7,6 +7,7 @@
 
 #include "fio.h"
 #include "lib/pow2.h"
+#include "rc.h"
 
 static char __run_str[REAL_MAX_JOBS + 1];
 static char run_str[__THREAD_RUNSTR_SZ(REAL_MAX_JOBS)];
@@ -556,6 +557,8 @@ void display_thread_status(struct jobs_eta *je)
 						1024, je->is_pow2, je->unit_base);
 			iops_str[ddir] = num2str(je->iops[ddir], 4, 1, 0, 0);
 		}
+
+		redis_send_status(je);
 
 		left = sizeof(output) - (p - output) - 1;
 

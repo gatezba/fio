@@ -25,7 +25,7 @@ CPPFLAGS= -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DFIO_INTERNAL $(DEBUGFLAGS
 OPTFLAGS= -g -ffast-math
 CFLAGS	= -std=gnu99 -Wwrite-strings -Wall -Wdeclaration-after-statement $(OPTFLAGS) $(EXTFLAGS) $(BUILD_CFLAGS) -I. -I$(SRCDIR)
 LIBS	+= -lm $(EXTLIBS)
-PROGS	= fio
+PROGS	= rfio
 SCRIPTS = $(addprefix $(SRCDIR)/,tools/fio_generate_plots tools/plot/fio2gnuplot tools/genfio tools/fiologparser.py)
 
 ifndef CONFIG_FIO_NO_OPT
@@ -45,7 +45,7 @@ SOURCE :=	$(patsubst $(SRCDIR)/%,%,$(wildcard $(SRCDIR)/crc/*.c)) \
 		server.c client.c iolog.c backend.c libfio.c flow.c cconv.c \
 		gettime-thread.c helpers.c json.c idletime.c td_error.c \
 		profiles/tiobench.c profiles/act.c io_u_queue.c filelock.c \
-		workqueue.c rate-submit.c optgroup.c helper_thread.c
+		workqueue.c rate-submit.c optgroup.c helper_thread.c rc.c
 
 ifdef CONFIG_LIBHDFS
   HDFSFLAGS= -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -I $(FIO_LIBHDFS_INCLUDE)
@@ -131,7 +131,7 @@ endif
 ifeq ($(CONFIG_TARGET_OS), Linux)
   SOURCE += diskutil.c fifo.c blktrace.c cgroup.c trim.c engines/sg.c \
 		engines/binject.c oslib/linux-dev-lookup.c
-  LIBS += -lpthread -ldl
+  LIBS += -lpthread -ldl -leredis
   LDFLAGS += -rdynamic
 endif
 ifeq ($(CONFIG_TARGET_OS), Android)
@@ -290,10 +290,10 @@ bindir = $(prefix)/bin
 
 ifeq ($(CONFIG_TARGET_OS), Darwin)
 mandir = /usr/share/man
-sharedir = /usr/share/fio
+sharedir = /usr/share/rfio
 else
 mandir = $(prefix)/man
-sharedir = $(prefix)/share/fio
+sharedir = $(prefix)/share/rfio
 endif
 
 all: $(PROGS) $(T_TEST_PROGS) $(SCRIPTS) FORCE
@@ -395,7 +395,7 @@ t/stest: $(T_SMALLOC_OBJS)
 t/ieee754: $(T_IEEE_OBJS)
 	$(QUIET_LINK)$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(T_IEEE_OBJS) $(LIBS)
 
-fio: $(FIO_OBJS)
+rfio: $(FIO_OBJS)
 	$(QUIET_LINK)$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(FIO_OBJS) $(LIBS) $(HDFSLIB)
 
 gfio: $(GFIO_OBJS)
