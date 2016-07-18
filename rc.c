@@ -58,4 +58,5 @@ void redis_send_status(struct jobs_eta *je)
     eredis_w_cmd(hEredis, "HINCRBY %s ior %d", buff, je->iops[DDIR_READ]);
     eredis_w_cmd(hEredis, "HINCRBY %s iow %d", buff, je->iops[DDIR_WRITE]);
     eredis_w_cmd(hEredis, "HINCRBY %s iot %d", buff, je->iops[DDIR_READ] + je->iops[DDIR_WRITE]);
+    eredis_w_cmd(hEredis, "HINCRBY %s cnt 1", buff);
 }
